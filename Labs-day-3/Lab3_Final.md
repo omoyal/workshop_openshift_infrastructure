@@ -34,14 +34,13 @@ Budget: CPU ____ / Mem ____ / Pods ____
 ```markdown
 # OpenShift Day-to-Day — Cheat Sheet
 
-<br>
 
 ## Is the cluster healthy? (run this FIRST, always)
 oc get co | grep -v 'True.*False.*False'    # empty output = healthy
 oc get nodes
 oc get clusterversion
 
-<br>
+
 
 ## Why is this pod broken? (in order)
 oc get pods                                  # STATUS + RESTARTS
@@ -49,7 +48,7 @@ oc describe pod <pod>                        # read Events at the bottom
 oc logs <pod> [--previous]                   # --previous = the crashed one
 oc get events --sort-by=.lastTimestamp | tail -20
 
-<br>
+
 
 ## The classics — decoded
 CrashLoopBackOff   → oc logs --previous      (app crashes on start)
@@ -58,21 +57,21 @@ Pending            → oc describe pod          (quota? taint? no resources?)
 Permission denied  → SCC. Check:
   oc get pod <pod> -o jsonpath='{.metadata.annotations.openshift\.io/scc}'
 
-<br>
+
 
 ## Why can't user X do Y? (answers 90% of tickets)
 oc auth can-i <verb> <resource> -n <ns> --as=<user>
 oc get rolebindings -n <ns>
 oc describe quota -n <ns>
 
-<br>
+
 
 ## Node needs maintenance
 oc adm cordon <node>
 oc adm drain <node> --ignore-daemonsets --delete-emptydir-data
 oc adm uncordon <node>
 
-<br>
+
 
 ## Break glass
 oc debug node/<node>   →   chroot /host      # root shell, audited
