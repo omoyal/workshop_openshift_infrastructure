@@ -40,7 +40,7 @@ You will now launch a specific image that exists on Quay:
 oc new-app quay.io/openshiftroadshow/mapit
 ```
 
-![Application Architecture](https://github.com/user-attachments/assets/64b48045-9f23-4366-b366-7eb3f1997d24)
+<img width="495" height="646" alt="image" src="https://github.com/user-attachments/assets/8ee5d045-0bc9-44fd-aaca-ade24e2dd060" />
 
 ---
 
