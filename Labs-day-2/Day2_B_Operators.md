@@ -1,4 +1,4 @@
-# Module: Operators — Letting the Cluster Run the Hard Stuff
+# Module: Operators - Letting the Cluster Run the Hard Stuff
 
 <br>
 
