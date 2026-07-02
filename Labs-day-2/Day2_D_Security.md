@@ -189,6 +189,8 @@ oc auth can-i delete rolebindings \
 
 ---
 
+<br><br>
+
 ## 🧭 Wrap-Up — Module & Day
 
 **This module:**
