@@ -1,4 +1,4 @@
-## 🎁 The Deliverables: Your Day-One Survival Kit
+## 🎁 The Deliverables: Your Day-One Kit
 
 The exercise you just finished wrote three files for you. Fill in the blanks, commit them to your team's Git — this is what you'll actually open next week.
 
