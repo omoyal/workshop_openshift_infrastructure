@@ -150,4 +150,7 @@ oc get route mapit -o jsonpath='{.spec.host}' | sed 's/^/http:\/\//'
 
 click on the Url Link
 
+It should look something like this:
+
+<img width="691" height="408" alt="image" src="https://github.com/user-attachments/assets/5700d3f0-a4d3-4903-a406-0636d2ec81bc" />
 
