@@ -1,155 +1,98 @@
-# Lab 2: Governance, Storage & The Admin Challenge 🔐💾
+# Lab 2: Secure & Store – Access, SCC, and Storage 🔐💾
 
-Welcome back, Admin! Our `mapit` application from Lab 1 is running great inside the `app-management` project. However, right now, it’s wide open, and if the pod restarts, any data inside it is wiped out. 
+Welcome back! Our `mapit` application from Lab 1 is still running inside the `app-management` project. 
 
-Today, we will balance our skills between the **CLI tool** and the **OpenShift 4.20 Web Console** to secure the project, provision storage, inspect security restrictions, and face your first mini-challenge.
-
----
-
-## 🧠 Concept Refreshers: Today's Building Blocks
-
-> **1. Cluster Identity (OAuth & Users):** OpenShift uses an OAuth layer to authenticate users. Once a user logs in, OpenShift creates a native `User` and `Group` object.
->
-> **2. RBAC (Roles & Bindings):** Defines who can do what inside our project. Instead of managing individual users, we always map permissions to a **Group**.
->
-> **3. SCC (Security Context Constraints):** The ultimate Linux kernel guardrail. It controls what permissions the *container* has on the actual host node.
->
-> **4. Storage (PVC & StorageClass):** Containers are ephemeral. A **PVC (Persistent Volume Claim)** is a request for a permanent hard drive, which a **StorageClass** automatically provisions for us.
+In this lab, you will act as the **`kubeadmin`** to create a new developer, restrict their access to just one project, witness OpenShift's built-in security constraints (SCC) block a dangerous container, and add persistent storage to our app.
 
 ---
 
-## 👥 Part 1: Managing the Team (Users & RBAC)
+## 👥 Part 1: Create a Developer & Grant Permissions
 
-Instead of writing massive YAML files for permissions, let's use the CLI to quickly create an organizational group, and then use the **Web Console** to grant them access.
+OpenShift manages users natively. Let's create a developer user named `clara` and grant her access *only* to the `app-management` namespace.
 
-### 1. Create a Group and a User via CLI:
+### 1. Create the user and group via CLI:
 ```bash
-# Create a group for our developers
+# Create a group for developers
 oc adm groups new alpha-developers
 
-# Add a simulated user named 'clara' into the group
+# Add user 'clara' to the group
 oc adm groups add-users alpha-developers clara
 ```
 
-### 🖥️ Console Check #1: Granting Access Visually
-1. Open your OpenShift Web Console.
-2. In the top project dropdown, make sure your project **`app-management`** is selected.
-3. In the left navigation menu, go to **User Management** 👈 and click on **Groups**. Verify that `alpha-developers` exists and has `clara` inside it.
-4. Now, stay in the same menu, but navigate to **Project** -> **Project Access** (or **Access**).
-5. Click on **Add Role Binding** and set the following fields:
-   * **Select Role:** `edit` (Allows them to deploy apps but not delete the project).
+### 🖥️ Console Check #1: Grant Access Visually
+1. Open your OpenShift Web Console (Logged in as `kubeadmin`).
+2. In the top project dropdown, ensure your project **`app-management`** is selected.
+3. In the left navigation menu, scroll down to **User Management** 👈 and click on **RoleBindings**.
+4. Click on the blue **Create Binding** button at the top right.
+5. Set the following fields in the form:
+   * **Binding Type:** Namespace role binding (RoleBinding)
+   * **Name:** `clara-developer-binding`
+   * **Namespace:** `app-management`
+   * **Role Name:** `edit`
    * **Subject Kind:** `Group`
-   * **Name:** `alpha-developers`
-6. Click **Save**. 
+   * **Subject Name:** `alpha-developers`
+6. Click **Create**.
 
-### 2. Verify the Binding via CLI (The Balance)
-Let's make sure the CLI sees exactly what you just configured in the browser:
+### 2. Verify Clara's limited access via CLI:
 ```bash
-# Check the role bindings inside your project
-oc get rolebindings
-
-# Zoom in to see who is attached to the "edit" role
-oc describe rolebinding edit
-```
-
-### 3. Test Clara's Powers (Impersonation):
-```bash
-# Can Clara create pods here?
+# Can Clara manage pods inside app-management?
 oc auth can-i create pods -n app-management --as=clara
 # (Expected: yes)
 
-# Can Clara see the cluster hardware nodes?
+# Can Clara see cluster nodes or other projects?
 oc auth can-i get nodes --as=clara
 # (Expected: no)
 ```
 
 ---
 
-## 💾 Part 2: Giving our App a Memory (Persistent Storage)
+## 🛡️ Part 2: The Security Shield (SCC in Action)
 
-Right now, our `mapit` app saves everything in memory. Let's attach a permanent disk drive to it. We will use an amazing OpenShift admin shortcut command: `oc set volume`.
+OpenShift uses **Security Context Constraints (SCC)** to stop containers from running with dangerous privileges (like `root`). Let's try to deploy a standard `nginx` image, which by default demands root permissions, and see how OpenShift blocks it.
 
-### 1. Attach a 1-Gigabyte Disk to the App via CLI:
+### 1. Attempt to deploy a root application via CLI:
+```bash
+oc create deployment unsafe-web --image=nginx -n app-management
+```
+
+### 🖥️ Console Check #2: Investigate the Refusal
+1. In the Web Console left menu, click on **Topology**.
+2. Look at the new `unsafe-web` component. It is **not** turning blue.
+3. Click on the `unsafe-web` circle, and in the side-panel click on the **Resources** tab.
+4. Click on the failing Pod/Deployment or look at the **Events** tab.
+5. You will see a clear warning: OpenShift's **`restricted-v2`** policy refused to start the container because it requires root privileges! 
+
+---
+
+## 💾 Part 3: Adding Storage to our App
+
+Right now, our `mapit` app from Lab 1 saves everything in temporary memory. Let's give it a permanent 1-Gigabyte disk using an awesome OpenShift admin shortcut command.
+
+### 1. Attach a disk to the deployment via CLI:
 ```bash
 oc set volume deployment/mapit --add --name=mapit-storage --type=pvc --claim-size=1Gi --mount-path=/app/data
 ```
-> 💡 **What just happened?** This single command created a **PVC**, talked to the cluster's default **StorageClass**, automatically provisioned a real **Persistent Volume (PV)** from the cloud/infrastructure, and mounted it inside the container at `/app/data`!
+> 💡 **What happened?** OpenShift instantly created a Persistent Volume Claim (PVC), communicated with the default cluster **StorageClass**, provisioned a real disk, and mounted it to `/app/data`.
 
-### 2. Verify Storage via CLI
-Before looking at the console, let's inspect the automated storage creation through the terminal:
+### 2. Verify the storage via CLI:
 ```bash
-# Check if the Persistent Volume Claim was created and bound
-oc get pvc
-
-# See the details of the requested disk
-oc describe pvc mapit-storage
+oc get pvc -n app-management
 ```
+*(You should see `mapit-storage` with a status of **Bound**)*
 
-### 🖥️ Console Check #2: Watch the Storage Magic
-1. In the left menu of the Web Console, click on **Topology**.
-2. Click on the `mapit` circle. In the side-panel that opens on the right, click on the **Resources** tab.
-3. Scroll down to the **Pods** section. Notice that a new pod is spinning up while the old one is terminating. OpenShift is doing a safe rolling update to apply the disk!
-4. Go to **Storage** in the left menu -> **Persistent Volume Claims** to see your green, healthy **Bound** disk.
-
----
-
-## 🛡️ Part 3: Inspecting the Shield (SCC via CLI)
-
-Even though Clara can edit the project, OpenShift is still watching the container's security level. Let's use the CLI to find out which **Security Context Constraint (SCC)** was assigned to our pod.
-
-### 1. View the Cluster's default SCC list:
-```bash
-oc get scc
-```
-
-### 2. Find the Pod's Shield using the Terminal
-Let's extract the exact security constraint OpenShift forced upon our pod:
-```bash
-# Get your active pod name
-oc get pods
-
-# Fetch the SCC annotation from the pod's live YAML configuration
-oc get pod <YOUR_POD_NAME_HERE> -o yaml | grep scc
-```
-👉 **Expected Output Line:** `openshift.io/scc: restricted-v2`
-
-> 🧠 **The Takeaway:** Because your cluster is an enterprise-grade platform, OpenShift automatically intercepted the pod creation and forced it into the `restricted-v2` sandbox. Even if a hacker breaches your container, they cannot access the underlying Linux host system because the SCC strips away their root privileges.
-
----
-
-## ⚔️ Part 4: The Admin Mini-Challenge!
-
-**Scenario:** The security department is sending an auditor named **`frank`** to inspect the `app-management` project. 
-* Frank needs to be able to *see* and *describe* everything inside the project (Pods, Services, Routes).
-* Frank **must NOT** be able to create, delete, or change anything.
-
-### Your Mission (CLI Only!):
-1. Create a new group named `alpha-auditors`.
-2. Add the user `frank` to the `alpha-auditors` group.
-3. Use the CLI command `oc adm policy add-role-to-group` to bind the group to the built-in **`view`** cluster role inside the `app-management` project. *(Hint: Use your previous commands from Part 1 as a reference, but change the role from `edit` to `view`)*.
-
-### Verify Your Success:
-Run the following impersonation checks. If they match the expected outputs, you passed the challenge!
-
-```bash
-# Can Frank see the pods?
-oc auth can-i get pods -n app-management --as=frank
-# (Should say: yes)
-
-# Can Frank delete or scale the mapit deployment?
-oc auth can-i delete deployment mapit -n app-management --as=frank
-# (Should say: no)
-```
+### 🖥️ Console Check #3: See the Live Rollout
+1. Go back to the **Topology** view in the Web Console.
+2. Click on the `mapit` circle.
+3. Under the **Resources** tab, look at the **Pods** section. You will see OpenShift seamlessly terminating the old diskless pod and rolling out a brand new pod with the persistent disk attached!
 
 ---
 
 ## 🏁 Summary Checklist
-1. ✅ **CLI & Console Balance:** Created groups via CLI, bound roles via Console, and verified using `oc describe`.
-2. ✅ **Dynamic Storage:** Used `oc set volume` and analyzed the PVC bindings via terminal and storage graphs.
-3. ✅ **SCC Inspection:** Used `grep` on a live Pod manifest to see OpenShift's security guardrails.
-4. ✅ **Challenge Complete:** Applied your knowledge to configure a read-only auditor role entirely from the CLI.
+1. ✅ **Targeted RBAC:** Created a user and limited their powers strictly to one project.
+2. ✅ **SCC Security:** Saw firsthand how OpenShift protects host nodes from root containers.
+3. ✅ **Dynamic Storage:** Provisioned and attached a persistent disk with a single command.
 
 ---
 
 ## 📌 Continuity Notice
-Great job! Leave this environment exactly as it is. In the next module, we will explore how to monitor this application, check metrics, and look at cluster logs!
+Leave this project and the `mapit` application running. We will use them in the next lab to explore logging, monitoring, and cluster metrics!
