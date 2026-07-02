@@ -1,4 +1,4 @@
-# Module: Storage — Where the Data Actually Lives
+# Module: Storage - Where the Data Actually Lives
 
 <br><br>
 
