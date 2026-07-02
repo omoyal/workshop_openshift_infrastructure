@@ -11,9 +11,10 @@ As a future administrator of OpenShift, it is important to understand several co
 ### 1. Projects
 A **Project** is a "bucket" of sorts. It’s a meta-construct where all of a user’s resources live. 
 
-> 💡 **Administrative Perspective:** Each Project can be thought of like a tenant. Projects may have multiple users who can access them, and users may be able to access multiple Projects. 
+> 💡 **Administrative Perspective:**
+>  Each Project can be thought of like a tenant. Projects may have multiple users who can access them, and users may be able to access multiple Projects. 
 > 
-> Technically speaking, a user doesn’t own the resources—the Project does. Deleting a user does not affect any of the created resources.
+> Technically speaking, a user doesn’t own the resources the Project does. Deleting a user does not affect any of the created resources.
 
 #### 🛠️ Exercise: Create a Project
 For this exercise, first create a Project to hold your resources:
