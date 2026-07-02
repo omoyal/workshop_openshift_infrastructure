@@ -2,7 +2,7 @@
 
 Welcome back, Admin! Our `mapit` application from Lab 1 is running great inside the `app-management` project. However, right now, it’s wide open, and if the pod restarts, any data inside it is wiped out. 
 
-Today, we will secure the project, learn how OpenShift manages cluster identities, and attach persistent storage to our app.
+Today, we will secure the project, learn how OpenShift manages cluster identities, and attach persistent storage to our app—all using the updated, unified OpenShift 4.20 console.
 
 ---
 
@@ -32,16 +32,15 @@ oc adm groups add-users alpha-developers clara
 ```
 
 ### 🖥️ Console Check #1: Granting Access Visually
-1. Open your OpenShift Web Console as an **Administrator**.
-2. Go to **User Management** 👈 on the left menu, and click on **Groups**.
-3. Verify that `alpha-developers` exists and has `clara` inside it.
-4. Now, switch to the **Developer Perspective** and select the `app-management` project.
-5. Click on **Project** -> **Project Access** -> **Add Role Binding**.
-6. Set the following fields:
+1. Open your OpenShift Web Console.
+2. In the top project dropdown, make sure your project **`app-management`** is selected.
+3. In the main navigation menu on the left, go to **User Management** 👈 and click on **Groups**. Verify that `alpha-developers` exists and has `clara` inside it.
+4. Now, stay in the same menu, but navigate to **Project** -> **Project Access** (or **Access**).
+5. Click on **Add Role Binding** and set the following fields:
    * **Select Role:** `edit` (Allows them to deploy apps but not delete the project).
    * **Subject Kind:** `Group`
    * **Name:** `alpha-developers`
-7. Click **Save**. 
+6. Click **Save**. 
 
 🎉 *Congratulations! Anyone added to this group can now manage apps in this project.*
 
@@ -65,17 +64,17 @@ Right now, our `mapit` app saves everything in memory. If the node dies, the dat
 
 Instead of writing a long PVC YAML and modifying the deployment manually, we will use an amazing OpenShift admin shortcut command: `oc set volume`.
 
-### 1. Attack a 1-Gigabyte Disk to the App:
+### 1. Attach a 1-Gigabyte Disk to the App:
 ```bash
 oc set volume deployment/mapit --add --name=mapit-storage --type=pvc --claim-size=1Gi --mount-path=/app/data
 ```
 > 💡 **What just happened behind the scenes?** This single command created a **PVC**, talked to the cluster's default **StorageClass**, automatically provisioned a real **Persistent Volume (PV)** from the infrastructure, and mounted it inside the container at `/app/data`!
 
 ### 🖥️ Console Check #2: Watch the Storage Magic
-1. Go back to the **Topology** view in the Web Console.
-2. Click on the `mapit` circle. In the side-panel, click on the **Resources** tab.
+1. In the left menu, click on **Topology**.
+2. Click on the `mapit` circle. In the side-panel that opens on the right, click on the **Resources** tab.
 3. Scroll down to the **Pods** section. Notice that a new pod is spinning up while the old one is terminating. OpenShift is doing a safe rolling update to apply the disk!
-4. Go to **Storage** (in the left menu) -> **Persistent Volume Claims**.
+4. Go to **Storage** in the left menu -> **Persistent Volume Claims**.
 5. You will see a PVC named `mapit-storage` with a status of **Bound**. OpenShift dynamically allocated the storage without you needing to provision hardware manually.
 
 ---
@@ -91,7 +90,7 @@ oc get scc
 You will see a list of security profiles, ranging from `privileged` (dangerous, like root) to `restricted-v2` (super secure).
 
 ### 🖥️ Console Check #3: Find the Pod's Shield
-1. In the Web Console **Topology** view, click on the `mapit` circle.
+1. Go back to the **Topology** view in the left menu and click on the `mapit` circle.
 2. Under the **Resources** tab, click on the active running **Pod** name.
 3. Switch to the **YAML** tab of the Pod.
 4. Press `Ctrl + F` (or `Cmd + F`) and search for the word: **`scc`**
