@@ -1,5 +1,7 @@
-# The rule:
+## The rule:
+```bash
 oc {=call to ocp-api}    VERB{get | create | ....}    OBJECT{pod | deploymeent ....}  FLAG
+```
 
 <br><br>
 
