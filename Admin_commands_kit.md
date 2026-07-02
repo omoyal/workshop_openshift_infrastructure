@@ -28,6 +28,8 @@ oc get mcp
 <br><br>
 
 ### Other
+```bash
 oc adm top nodes
 oc get project
 oc get event
+```
