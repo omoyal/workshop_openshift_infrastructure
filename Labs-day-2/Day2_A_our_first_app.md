@@ -1,22 +1,31 @@
 # Module: Application Management Basics on OpenShift
 
-In this module, you will deploy a sample application using the `oc` CLI tool. You will also learn about the core concepts, fundamental objects, and basics of application management on the **OpenShift Container Platform**.
+In this module, you will deploy a sample application using the `oc` CLI tool.  
+You will also learn about the core concepts, fundamental objects, and basics of application management on the **OpenShift Container Platform**.
 
 ---
 
+<br><br>
+
 ## 📑 Core OpenShift Concepts
 
-As a future administrator of OpenShift, it is important to understand several core building blocks as they relate to applications. Understanding these building blocks will help you better see the "big picture" of application management on the platform.
+As a future administrator of OpenShift, it is important to understand several core building blocks as they relate to applications.  
+Understanding these building blocks will help you better see the "big picture" of application management on the platform.
+
+<br>
 
 ### 1. Projects
 A **Project** is a "bucket" of sorts. It’s a meta-construct where all of a user’s resources live. 
 
 > 💡 **Administrative Perspective:**
+> 
 >  Each Project can be thought of like a tenant. Projects may have multiple users who can access them, and users may be able to access multiple Projects. 
 > 
 > Technically speaking, a user doesn’t own the resources the Project does. Deleting a user does not affect any of the created resources.
 
-#### 🛠️ Exercise: Create a Project
+<br>
+
+#### 🛠️ Create a Project
 For this exercise, first create a Project to hold your resources:
 
 ```bash
@@ -24,6 +33,8 @@ oc new-project app-management
 ```
 
 ---
+
+<br><br>
 
 ## 🚀 Deploy a Sample Application
 
@@ -34,7 +45,9 @@ Users commonly use this command to:
 * Create builds of source code and deploy them.
 * Instantiate templates.
 
-#### 🛠️ Exercise: Launch a Sample Image
+<br>
+
+#### 🛠️ Launch a Sample Image
 You will now launch a specific image that exists on Quay:
 
 ```bash
@@ -45,15 +58,25 @@ oc new-app quay.io/openshiftroadshow/mapit
 
 ---
 
+<br><br>
+
 ## 📦 Pods
 
 **Pods** are one or more containers deployed together on a host. A Pod is the smallest compute unit you can define, deploy, and manage in OpenShift. 
-
+<br>
 * **Networking:** Each Pod is allocated its own internal IP address on the SDN (Software Defined Network) and owns the entire port range.
-* **Resource Sharing:** The containers within a Pod can share local storage space and networking resources.
-* **Immutability:** Pods are treated as **static objects** by OpenShift. You cannot change a Pod definition while it is running.
 
-#### 🛠️ Exercise: List Current Pods
+<br>
+
+* **Resource Sharing:** The containers within a Pod can share local storage space and networking resources.
+
+<br>
+
+* **Immutability:** Pods are treated as **static objects** by OpenShift. You cannot change a Pod definition while it is running.
+  
+<br>
+
+#### 🛠️ List Current Pods
 You can get a list of running Pods using the following command:
 
 ```bash
@@ -61,6 +84,8 @@ oc get pods
 ```
 
 ---
+
+<br><br>
 
 ## 🔌 Services
 
