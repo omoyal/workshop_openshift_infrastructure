@@ -1,26 +1,38 @@
 # Module: Operators — Letting the Cluster Run the Hard Stuff
 
-> 🗺️ **The story so far:** The Maps team's `mapit` application is live — you deployed it, exposed it, and even watched OpenShift resurrect a deleted Pod. Word got around. Now the Maps team is back with a new request: *"We need a PostgreSQL database for the next version. Oh, and it needs to be highly available. And it should survive failures. And be upgraded safely."*
+<br>
+
+> 🗺️ **The story so far:** The Maps team's `mapit` application is live - you deployed it, exposed it, and even watched OpenShift resurrect a deleted Pod. Word got around. Now the Maps team is back with a new request: *"We need a PostgreSQL database for the next version. Oh, and it needs to be highly available. And it should survive failures. And be upgraded safely."*
 >
 > You are **not** going to babysit a database by hand. In this module you'll make the cluster do it — with an **Operator**.
 
 ---
 
+<br><br>
+
 ## 📑 Core Concept: What Is an Operator?
+
+<br>
 
 An **Operator** is a method of packaging, deploying, and managing an application by extending Kubernetes itself. It has two parts:
 
 * **Custom Resource Definition (CRD):** A new object type added to the cluster (e.g., `Cluster`, `Kafka`). It lets you declare **WHAT** you want in plain YAML.
 * **Controller:** A Pod running in the cluster that watches those objects and knows **HOW** to make them real — and keep them that way, forever.
 
+<br>
+
 > 💡 **Administrative Perspective:**
 > An Operator is a human operator's knowledge — the runbooks, the failover procedures, the 3am recovery steps — encoded into software that never sleeps. It runs the same *reconcile loop* you already saw with Deployments (watch → compare → act), just applied to much more complex software.
 
 ---
 
+<br>
+
 ## ⚙️ The Platform Itself Runs on Operators
 
 Before installing anything new, meet the Operators you already have. Every OpenShift component — the web console, the ingress router, monitoring, authentication — is managed by a **ClusterOperator**.
+
+<br>
 
 #### 🛠️ Exercise: Meet Your ClusterOperators
 
@@ -30,22 +42,31 @@ oc get clusteroperators
 
 You should see roughly 30 operators, all showing `AVAILABLE: True` and `DEGRADED: False`.
 
+<br>
+
 Now see the same thing in the **Web Console**:
 
 1. Log in to the web console as `kubeadmin`.
 2. Navigate to **Administration → Cluster Settings**.
 3. Select the **ClusterOperators** tab.
 
+<br>
+
 > 💡 **Administrative Perspective:**
 > `oc get co` (or this console page) is your new "is the cluster healthy?" check — the first place to look when something feels wrong. A `Degraded: True` operator will usually tell you in its message exactly which component is broken.
 
 ---
+<br><br>
 
 ## 🏪 The Software Catalog — The Cluster's App Store
 
 The **Software Catalog** (found under **Ecosystem** in the console) is the built-in catalog of Operators, Helm charts, and other content you can add to the cluster: databases, storage, messaging, GitOps, and hundreds more. The same pattern that runs the platform is available for everything you build on top of it.
 
+<br>
+
 > 🌍 **Trust levels matter:** Operators are labeled **Red Hat**, **Certified**, or **Community**. Check the badge before you trust one with production data.
+
+<br>
 
 #### 🛠️ Exercise: Explore the Software Catalog (Console)
 
@@ -57,9 +78,13 @@ The **Software Catalog** (found under **Ecosystem** in the console) is the built
 
 ---
 
+<br><br>
+
 ## 📥 Installing an Operator
 
 Installation is a few clicks. Behind the scenes, **OLM** (Operator Lifecycle Manager — itself an Operator, of course) handles the install, dependencies, and future upgrades through the channel you pick.
+
+<br>
 
 #### 🛠️ Exercise: Install the Operator (Console)
 
@@ -72,6 +97,8 @@ Installation is a few clicks. Behind the scenes, **OLM** (Operator Lifecycle Man
 3. Click **Install** and wait for *"Installed operator: ready for use"*.
 4. Navigate to **Ecosystem → Installed Operators** and verify **CloudNativePG** shows a status of **Succeeded**.
 
+<br>
+
 #### 🛠️ Exercise: Verify from the CLI
 
 The console clicks created real API objects. Prove it:
@@ -83,6 +110,8 @@ oc get pods -n openshift-operators
 **Expected Output:**
 > A pod named `cnpg-controller-manager-...` in `Running` state — this is the **controller**, now watching your cluster 24/7.
 
+<br>
+
 The Operator also taught your cluster a new word. Check that a new resource type exists:
 
 ```bash
@@ -93,9 +122,13 @@ Your cluster now understands what a PostgreSQL `Cluster` is. It didn't a minute 
 
 ---
 
+<br><br>
+
 ## 🗄️ Creating the Database — Declaratively
 
 Time to deliver the Maps team their database. You will not install PostgreSQL, configure replication, or write failover scripts. You will **declare** a database, and the Operator will do the rest.
+
+<br>
 
 #### 🛠️ Exercise: Create the Custom Resource
 
@@ -104,6 +137,8 @@ Make sure you are in the project from the previous module:
 ```bash
 oc project app-management
 ```
+
+<br>
 
 Create a file named `maps-db.yaml`:
 
@@ -123,6 +158,7 @@ Eight lines. That's the entire request: *"a 3-instance PostgreSQL cluster with 1
 ```bash
 oc apply -f maps-db.yaml
 ```
+<br>
 
 #### 🛠️ Exercise: Watch the Operator Work
 
@@ -142,6 +178,8 @@ oc get clusters.postgresql.cnpg.io maps-db
 **Expected Output:**
 > `STATUS: Cluster in healthy state`, with 3 ready instances and a primary elected.
 
+<br>
+
 #### 🛠️ Exercise: See It in the Console
 
 1. Navigate to **Workloads → Topology** and make sure the `app-management` project is selected at the top.
@@ -153,11 +191,14 @@ oc get clusters.postgresql.cnpg.io maps-db
 
 ---
 
+<br><br>
+
 ## 💥 The Payoff: Break It and Watch It Heal
 
 A Deployment can restart a stateless Pod. But a database **primary** is a different beast — losing it means electing a new primary, repointing replicas, updating endpoints. That's expert knowledge. Let's see if our new "expert" has it.
 
 #### 🛠️ Exercise: Kill the Primary
+<br>
 
 Find the current primary:
 
@@ -190,12 +231,16 @@ oc get clusters.postgresql.cnpg.io maps-db -o jsonpath='{.status.currentPrimary}
 
 ---
 
+<br><br>
+
 ## 🧭 Wrap-Up
 
 * An Operator = a **CRD** (what you want) + a **Controller** (how to keep it real).
 * OpenShift itself is ~30 **ClusterOperators** — `oc get co` is your cluster health dashboard.
 * The **Software Catalog** (Ecosystem) brings the same pattern to everything you add — installed in clicks, verified in the CLI.
 * You declared a 3-node PostgreSQL cluster in 8 lines of YAML and it **survived losing its primary**.
+
+<br><br>
 
 > ⚠️ **Do NOT delete the `app-management` project or the `maps-db` cluster!**
 > This afternoon we find out where its disks actually came from — and what happens to the Maps team's data when Pods die. See you at the Storage module. 🗄️
