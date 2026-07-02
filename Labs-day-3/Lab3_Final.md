@@ -88,14 +88,14 @@ oc adm must-gather                            # before opening a case
 # Incident: First 15 Minutes
 _Print me. Tape me to the wall._
 
-<br>
+
 
 1. PLATFORM OR APP?
    oc get co | grep -v 'True.*False.*False'
    → co Degraded?  PLATFORM issue — read its message, that's your lead
    → all clean?    APP issue — go to 2
 
-<br>
+
 
 2. WHERE DOES IT HURT?
    oc get pods -n <ns> -o wide     # note the NODE column
@@ -103,20 +103,20 @@ _Print me. Tape me to the wall._
    → many pods, same node?  NODE issue — oc describe node <node>
    → many pods, all nodes?  quota / config / image — check events
 
-<br>
+
 
 3. WHAT CHANGED?
    oc get events -A --sort-by=.lastTimestamp | tail -30
    Ask the humans: deploy? upgrade? config change?
 
-<br>
+
 
 4. STOP THE BLEEDING (in order of preference)
    oc rollout undo deployment/<app> -n <ns>    # bad deploy → rollback
    oc scale / cordon                           # contain it
    ...only THEN root-cause in peace.
 
-<br>
+
 
 5. IF YOU CALL RED HAT
    oc adm must-gather                          # attach the tarball
@@ -124,5 +124,7 @@ _Print me. Tape me to the wall._
 ```
 
 ---
+
+<br><br>
 
 ✅ **Final checkpoint of the workshop:** all three files filled in and committed to your Git. Onboarding, daily driving, and firefighting — covered.
