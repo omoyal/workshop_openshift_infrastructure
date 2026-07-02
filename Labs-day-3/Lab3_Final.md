@@ -4,11 +4,13 @@ The exercise you just finished wrote three files for you. Fill in the blanks, co
 
 ---
 
-### 📘 File 1: `onboarding-playbook.md` — when a new team arrives
+<br><br>
+
+### 📘 File 1: `onboarding-Team.md` — when a new team arrives
 
 ```markdown
 # Team Onboarding — <company>
-_Tested on OpenShift 4.20, <date>_
+OpenShift 4.20, <date>_
 
 ## Inputs
 Team: ____  |  Lead (admin): ____  |  Members (edit): ____
@@ -24,22 +26,30 @@ Budget: CPU ____ / Mem ____ / Pods ____
 ```
 
 ---
+<br><br>
+
 
 ### ⚡ File 2: `cheatsheet.md` — the 20 commands you'll actually type
 
 ```markdown
 # OpenShift Day-to-Day — Cheat Sheet
 
+<br>
+
 ## Is the cluster healthy? (run this FIRST, always)
 oc get co | grep -v 'True.*False.*False'    # empty output = healthy
 oc get nodes
 oc get clusterversion
+
+<br>
 
 ## Why is this pod broken? (in order)
 oc get pods                                  # STATUS + RESTARTS
 oc describe pod <pod>                        # read Events at the bottom
 oc logs <pod> [--previous]                   # --previous = the crashed one
 oc get events --sort-by=.lastTimestamp | tail -20
+
+<br>
 
 ## The classics — decoded
 CrashLoopBackOff   → oc logs --previous      (app crashes on start)
@@ -48,15 +58,21 @@ Pending            → oc describe pod          (quota? taint? no resources?)
 Permission denied  → SCC. Check:
   oc get pod <pod> -o jsonpath='{.metadata.annotations.openshift\.io/scc}'
 
+<br>
+
 ## Why can't user X do Y? (answers 90% of tickets)
 oc auth can-i <verb> <resource> -n <ns> --as=<user>
 oc get rolebindings -n <ns>
 oc describe quota -n <ns>
 
+<br>
+
 ## Node needs maintenance
 oc adm cordon <node>
 oc adm drain <node> --ignore-daemonsets --delete-emptydir-data
 oc adm uncordon <node>
+
+<br>
 
 ## Break glass
 oc debug node/<node>   →   chroot /host      # root shell, audited
@@ -65,16 +81,22 @@ oc adm must-gather                            # before opening a case
 
 ---
 
+<br><br>
+
 ### 🚑 File 3: `first-15-minutes.md` — when something is on fire
 
 ```markdown
 # Incident: First 15 Minutes
 _Print me. Tape me to the wall._
 
+<br>
+
 1. PLATFORM OR APP?
    oc get co | grep -v 'True.*False.*False'
    → co Degraded?  PLATFORM issue — read its message, that's your lead
    → all clean?    APP issue — go to 2
+
+<br>
 
 2. WHERE DOES IT HURT?
    oc get pods -n <ns> -o wide     # note the NODE column
@@ -82,14 +104,20 @@ _Print me. Tape me to the wall._
    → many pods, same node?  NODE issue — oc describe node <node>
    → many pods, all nodes?  quota / config / image — check events
 
+<br>
+
 3. WHAT CHANGED?
    oc get events -A --sort-by=.lastTimestamp | tail -30
    Ask the humans: deploy? upgrade? config change?
+
+<br>
 
 4. STOP THE BLEEDING (in order of preference)
    oc rollout undo deployment/<app> -n <ns>    # bad deploy → rollback
    oc scale / cordon                           # contain it
    ...only THEN root-cause in peace.
+
+<br>
 
 5. IF YOU CALL RED HAT
    oc adm must-gather                          # attach the tarball
