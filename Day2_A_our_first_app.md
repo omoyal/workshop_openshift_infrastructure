@@ -143,3 +143,11 @@ Verify that the Route was successfully created and retrieve its external URL:
 ```bash
 oc get route
 ```
+
+```bash
+oc get route mapit -o jsonpath='{.spec.host}' | sed 's/^/http:\/\//'
+```
+
+click on the Url Link
+
+
