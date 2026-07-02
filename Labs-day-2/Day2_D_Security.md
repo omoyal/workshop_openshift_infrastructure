@@ -1,10 +1,13 @@
-# Module: SCC & RBAC — Who May Do What (and as Whom)
+# Module: SCC & RBAC - Who May Do What (and as Whom)
+<br><br>
 
 > 🗺️ **The story so far:** Your platform now runs the Maps team's app, a self-healing PostgreSQL cluster, and storage that survives anything. Then, at 15:00, the Maps team ships **v2 of their web frontend** — a stock `nginx` image straight from Docker Hub. They tested it on a laptop. It works on their machine. 🙃
 >
 > It will **not** work on your cluster — and by the end of this module you'll know exactly why, why that's a *good* thing, and how to fix it the right way.
 
 ---
+
+<br>
 
 ## 📑 Core Concept: Security Context Constraints (SCC)
 
@@ -14,12 +17,16 @@ On plain Kubernetes, a container that wants to run as **root** — runs as root.
 * The default SCC, **`restricted-v2`**, says among other things: *no root, run as a random high UID, drop dangerous capabilities.*
 * Pods don't get SCCs directly — they get them through their **ServiceAccount** (more on that in a minute).
 
+<br>
+
 > 💡 **Administrative Perspective:**
 > This is the #1 difference people hit when coming from vanilla Kubernetes or a laptop: *"my image works everywhere but crashes on OpenShift."* It's not a bug — it's the platform refusing to run software as root on your nodes. In a multi-tenant cluster, that default protects every team from every other team.
 
 ---
+<br><br>
 
 ## 💥 Watch It Break
+<br>
 
 #### 🛠️ Exercise: Deploy the Maps Team's v2 Image
 
@@ -58,10 +65,13 @@ oc get pods -l deployment=maps-web \
 **Expected Output:**
 > `restricted-v2`
 
+<br>
+
 > 💡 **Administrative Perspective:**
 > The **best** fix is a rootless image (e.g., `nginxinc/nginx-unprivileged`) — and that's the answer you should push dev teams toward. But sometimes it's a vendor image you can't change. For that, OpenShift gives you a **controlled exception** — scoped to one identity, in one project. Never cluster-wide.
 
 ---
+<br>
 
 ## 🪪 Core Concept: ServiceAccounts
 
@@ -113,6 +123,7 @@ oc get pods -l deployment=maps-web \
 > 🏆 **Notice what you did NOT do:** you didn't disable security, didn't touch other workloads, didn't grant anything cluster-wide. One identity, one permission, one project. That's the pattern.
 
 ---
+<br>
 
 ## 📑 Core Concept: RBAC — Roles & RoleBindings
 
@@ -122,6 +133,8 @@ That `add-scc-to-user` command you just ran? It quietly created a **RoleBinding*
 * **RoleBinding:** attaches a Role to an identity — a user, a group, or a ServiceAccount — within a project.
 * **Identity + Role + Binding = permission.** Nothing else grants access.
 
+<br><br>
+
 OpenShift ships three built-in roles you'll use constantly as a platform team:
 
 | Role | Grants |
@@ -129,6 +142,8 @@ OpenShift ships three built-in roles you'll use constantly as a platform team:
 | `view`  | Read everything in a project, change nothing |
 | `edit`  | Create and modify workloads, but not permissions |
 | `admin` | Everything in the project, including granting access to others |
+
+<br>
 
 #### 🛠️ Exercise: Grant Access Like a Platform Team
 
@@ -144,6 +159,8 @@ See the binding you just created:
 ```bash
 oc get rolebindings | grep maps-ci
 ```
+
+<br>
 
 #### 🛠️ Exercise: Test Permissions Without Being the Bot
 
@@ -162,6 +179,8 @@ oc auth can-i delete rolebindings \
 ```
 
 **Expected Output:** `no` — `edit` can ship apps, but it can **not** hand out permissions. That separation is the whole point.
+
+<br>
 
 #### 🛠️ Exercise: See It in the Console
 
