@@ -1,10 +1,8 @@
-# Module: Real Humans, Real Rules — Auth, RBAC & Budgets
-
-<br><br>
-
-> 🗺️ **The story so far:** Everything until now was done as `kubeadmin` . Today the Maps team gets what every real team needs: **their own logins, their own permissions, and a budget they can't blow through.**
+# Module: Real Humans, Real Rules - Auth, RBAC & Budgets
 
 <br>
+
+> 🗺️ **The story so far:** Everything until now was done as `kubeadmin` . Today the Maps team gets what every real team needs: **their own logins, their own permissions, and a budget they can't blow through.**
 
 > 💡 **Tip:** open **two terminals** — Terminal A stays `kubeadmin`, Terminal B will become Dana. It saves constant re-logins.
 
