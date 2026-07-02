@@ -1,21 +1,29 @@
 # Module: Storage — Where the Data Actually Lives
 
+<br><br>
+
 > 🗺️ **The story so far:** This morning you gave the Maps team a 3-node PostgreSQL cluster, and it even survived losing its primary. But during lunch, a suspicious developer asked a fair question: *"Wait — pods are ephemeral. You told us so yourselves. So when a database pod dies... where is our data?"*
 >
 > Time to answer properly. In this module you'll discover the storage your Operator quietly created this morning, understand how OpenShift provisions disks on demand, and then give `mapit` itself a disk that outlives its pods.
 
 ---
+<br>
 
 ## 📑 Core Concepts: The Storage Triangle
 
 Three objects, one clean separation of concerns:
+<br>
 
 * **PersistentVolume (PV):** The actual piece of storage — a disk, an NFS export, a cloud volume. Cluster-scoped. Usually you never create these by hand.
 * **PersistentVolumeClaim (PVC):** A **request** for storage made by an application: *"I need 1Gi, read-write."* Lives inside a Project. This is the object you'll work with daily.
 * **StorageClass:** The **menu** of storage types the cluster offers (fast SSD, cheap bulk, file share...). A PVC points at a class; the class knows how to provision a matching PV.
 
+<br>
+
 > 💡 **Administrative Perspective:**
 > This is **dynamic provisioning**: a PVC arrives → the StorageClass's provisioner creates a PV on the fly → the two are **Bound**. Nobody files a storage ticket, nobody carves a LUN by hand. The "storage admin" is now a piece of software — sound familiar? It's usually an Operator. 😏
+
+<br>
 
 **Access modes** (you'll see these on every PVC):
 
@@ -27,9 +35,13 @@ Three objects, one clean separation of concerns:
 
 ---
 
+<br><br>
+
 ## 🔍 Solving the Morning Mystery
 
 This morning, your 8-line YAML asked for `storage: size: 1Gi` — and the Operator took care of the rest. Let's see what "the rest" actually was.
+
+<br>
 
 #### 🛠️ Exercise: Find the Database's Claims
 
@@ -41,13 +53,19 @@ oc get pvc
 **Expected Output:**
 > Three PVCs — `maps-db-1`, `maps-db-2`, `maps-db-3` — all `Bound`, 1Gi each. One claim per database instance.
 
+<br>
+
 Inspect one of them:
 
 ```bash
 oc describe pvc maps-db-1
 ```
 
+<br>
+
 Note three things in the output: the **StorageClass** used, the **Access Mode** (`RWO` — it's a database), and **Used By** (the pod mounting it).
+
+<br>
 
 #### 🛠️ Exercise: Follow the Claim to the Real Disk
 
@@ -59,13 +77,19 @@ oc get pv
 
 Find the rows whose `CLAIM` column says `app-management/maps-db-...` — those are the actual disks that were created *for you*, on demand, this morning.
 
+<br>
+
 #### 🛠️ Exercise: Read the Menu
 
 ```bash
 oc get storageclass
 ```
 
+<br>
+
 Note which class is marked **`(default)`** — that's what any PVC gets when it doesn't ask for a specific class. That's how the Operator's PVCs got disks without ever naming a StorageClass.
+
+<br>
 
 Now the same picture in the **Web Console**:
 
@@ -73,14 +97,20 @@ Now the same picture in the **Web Console**:
 2. Click `maps-db-1` — the console shows capacity, status, access mode, and the bound PV, all in one page.
 3. Navigate to **Storage → StorageClasses** and find your default class.
 
+<br>
+
 > 💡 **Administrative Perspective:**
 > Mystery solved: **PVC created by the Operator → default StorageClass → provisioner created a PV → Bound.** As the platform team, the StorageClasses page is *your* responsibility — it defines what storage your developers can ask for.
 
 ---
 
+<br><br>
+
 ## 💾 Giving mapit a Disk of Its Own
 
 The Maps team's next feature lets users upload map files. `mapit`'s filesystem is **ephemeral** — pod dies, files die. Let's fix that with one command.
+
+<br>
 
 #### 🛠️ Exercise: Add a Volume to a Running App
 
@@ -110,6 +140,7 @@ oc get pods
 Wait until the new `mapit` pod is `Running`.
 
 ---
+<br><br>
 
 ## 💥 The Test: Kill the Pod, Keep the Data
 
@@ -150,12 +181,15 @@ oc exec deployment/mapit -- cat /data/proof.txt
 
 > 🏆 **The pod is cattle. The claim is the pet.** Pods come and go; the PVC — and the data on it — stays. This is the exact mechanism protecting the Maps team's database.
 
+<br>
+
 #### 🛠️ Exercise (Bonus, if time allows): See It in the Topology
 
 1. Navigate to **Workloads → Topology** in project `app-management`.
 2. Click the `mapit` node and open the **Resources** tab in the side panel — the PVC is now listed as part of the application.
 
 ---
+<br><br>
 
 ## 🧭 Wrap-Up
 
@@ -163,6 +197,8 @@ oc exec deployment/mapit -- cat /data/proof.txt
 * The Operator's `storage: 1Gi` this morning silently became 3 PVCs on the **default StorageClass** — now you know how to trace every step of it.
 * `oc set volume` gave a running app persistent storage in one command — and the data survived the pod's death.
 * Access modes matter: databases want `RWO`; shared file use-cases need `RWX` — check what your StorageClasses support before promising it to a team.
+
+<br>
 
 > ⚠️ **Keep everything running — we're not done with the Maps team.**
 > Right after the break, they're shipping a **new version of their image**... and it insists on running as **root**. OpenShift is going to have opinions about that. See you at the SCC module. 🔒
