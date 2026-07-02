@@ -66,11 +66,7 @@ oc new-app quay.io/openshiftroadshow/mapit
 <br>
 * **Networking:** Each Pod is allocated its own internal IP address on the SDN (Software Defined Network) and owns the entire port range.
 
-<br>
-
 * **Resource Sharing:** The containers within a Pod can share local storage space and networking resources.
-
-<br>
 
 * **Immutability:** Pods are treated as **static objects** by OpenShift. You cannot change a Pod definition while it is running.
   
@@ -91,7 +87,11 @@ oc get pods
 
 ![Services Architecture](https://github.com/user-attachments/assets/397028b9-06a7-4c63-b635-b3e5d84a7bf0)
 
+<br>
+
 **Services** provide a convenient abstraction layer inside OpenShift to find a group of identical Pods. They act as an **internal proxy/load balancer** between those Pods and anything else that needs to access them from inside the OpenShift environment. 
+
+<br>
 
 > 🌍 **Internal Construct:** Remember that Services are strictly internal. They are **not** available to the "outside world" or anything outside the OpenShift cluster environment.
 
@@ -99,7 +99,9 @@ oc get pods
 * **Labels & Selectors:** A Service maps to a set of Pods via a system of **Labels** and **Selectors**. 
 * **IP Allocation:** Services are assigned a fixed IP address, allowing many ports and protocols to be mapped.
 
-#### 🛠️ Exercise: List Current Services
+<br>
+
+#### 🛠️ List Current Services
 When you ran the `new-app` command, OpenShift automatically created a Service for you. Verify it by running:
 
 ```bash
@@ -108,14 +110,20 @@ oc get services
 
 ---
 
+<br><br>
+
 ## 🔄 Deployments and ReplicaSets
 
 While Services provide routing and load balancing for Pods (which may come and go), **ReplicaSets (RS)** are used to specify and ensure that the desired number of Pod replicas are running at any given time.
 
+<br>
+
 * **Self-Healing:** If you want an application to always scale to 3 Pods, a ReplicaSet is required. Without an RS, any Pods that crash or die are **not** automatically restarted. This is how OpenShift "self-heals".
 * **Deployments:** Manage the rollout of ReplicaSets and provide declarative updates to Pods.
 
-#### 🛠️ Exercise: Explore Deployments & ReplicaSets
+<br>
+
+#### 🛠️ Explore Deployments & ReplicaSets
 Take a look at the Deployment (`deploy`) that was created for you when you stood up the `mapit` image:
 
 ```bash
@@ -130,15 +138,23 @@ oc get replicaset
 
 ---
 
+<br><br>
+
 ## 🌐 Routes
 
 ![Routes Architecture](https://github.com/user-attachments/assets/cb2d1276-c2da-4f2a-a750-1b468f61d817)
 
+<br>
+
 While Services handle internal traffic, external clients (users, external systems, devices) often need access to the application. The **OpenShift Routing Layer** is what enables external access, and the data object behind it is a **Route**.
+
+<br>
 
 * **How it works:** The default OpenShift router (**HAProxy**) uses the HTTP header of the incoming request to determine where to proxy the connection.
 * **Security:** You can optionally define security configurations, such as **TLS**, directly on the Route.
 * **The Router Operator:** The installation automatically deployed an Operator for the router inside the `openshift-ingress` Project.
+
+<br>
 
 #### 🛠️ Exercise: Inspect the Default Router
 You can view information about the default cluster router using:
@@ -149,11 +165,13 @@ oc describe deployment router-default -n openshift-ingress
 
 ---
 
+<br><br>
+
 ## 🏗️ Creating a Route
 
 Creating a Route is a straightforward process. You simply "expose" the internal Service via the command line.
 
-#### 🛠️ Exercise: Expose the Service
+#### 🛠️ Expose the Service
 Since your Service name is `mapit`, you can expose it to the outside world with a single command:
 
 ```bash
@@ -163,7 +181,9 @@ oc expose service mapit
 **Expected Output:**
 > `route/mapit exposed`
 
-#### 🛠️ Exercise: Verify the Route
+<br>
+
+#### 🛠️ Verify the Route
 Verify that the Route was successfully created and retrieve its external URL:
 
 ```bash
